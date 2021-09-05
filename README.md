@@ -1,5 +1,15 @@
 # Redis clustering in Kubernetes
 
+This repo serves as an example of how to manage HA Redis (Masters only for now),
+including zero downtime upgrades, persistence, monitoring, scaling and rebalancing.
+
+This repo is intended primarily for learning.
+
+If you need a production setup for this, have a look at our [Redis Operator].
+
+It manages Redis Cluster in very much the same way as this repository, 
+except automatically through the use of CRDs.
+
 ## Overview
 
 The installation creates a 
@@ -132,4 +142,5 @@ It takes a list of ordinals of the pod, and runs the command against each of the
 ./bin/multi-cli.py 0,1,2 CLUSTER MYID
 ```
 
+[Redis Operator]: https://github.com/ContainerSolutions/redis-operator
 [1]: http://localhost:9090/graph?g0.expr=redis_db_keys&g0.tab=0&g0.stacked=0&g0.show_exemplars=1&g0.range_input=1h&g1.expr=redis_keyspace_hits_total&g1.tab=0&g1.stacked=0&g1.show_exemplars=0&g1.range_input=1h&g2.expr=redis_keyspace_misses_total&g2.tab=0&g2.stacked=0&g2.show_exemplars=0&g2.range_input=1h&g3.expr=redis_memory_used_bytes&g3.tab=0&g3.stacked=0&g3.show_exemplars=0&g3.range_input=1h&g4.expr=redis_mem_clients_normal&g4.tab=0&g4.stacked=0&g4.show_exemplars=0&g4.range_input=1h&g5.expr=redis_last_slow_execution_duration_seconds&g5.tab=0&g5.stacked=0&g5.show_exemplars=0&g5.range_input=1h
