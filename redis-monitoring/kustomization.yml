@@ -1,0 +1,6 @@
+resources:
+  - prometheus-cluster-role-binding.yml
+  - prometheus-cluster-role.yml
+  - prometheus-service-account.yml
+  - pod-monitor.yml
+  - prometheus.yml

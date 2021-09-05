@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-consistency-checker
+spec:
+  selector:
+    matchLabels:
+      app: redis-consistency-checker
+  template:
+    metadata:
+      labels:
+        app: redis-consistency-checker
+    spec:
+      containers:
+      - name: redis-consistency-checker
+        image: adenda/redis-rb-cluster-docker:0.1.16
+        command:
+        - sleep 
+        - "3600"
+        volumeMounts:
+        - name: config
+          mountPath: /usr/local/bin/consistency-checker.rb
+          subPath: consistency-checker.rb
+      volumes:
+      - configMap:
+          name: redis-consistency-checker-config
+        name: config

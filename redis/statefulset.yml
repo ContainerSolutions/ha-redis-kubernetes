@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: redis
+  serviceName: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - env:
+        - name: REDIS_ADDR
+          value: localhost:6379
+        image: oliver006/redis_exporter:v1.27.0
+        imagePullPolicy: IfNotPresent
+        name: metrics
+        ports:
+        - containerPort: 9121
+          name: metrics
+      - command:
+        - redis-server
+        - /etc/redis/redis.conf
+        image: redis:5.0
+        name: redis
+        ports:
+        - containerPort: 6379
+          name: redis-cli
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+        volumeMounts:
+        - mountPath: /etc/redis
+          name: config
+        - mountPath: /data
+          name: redis-data
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - configMap:
+          items:
+          - key: redis.conf
+            path: redis.conf
+          name: redis-config
+        name: config
+  updateStrategy:
+    rollingUpdate:
+      partition: 3
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi

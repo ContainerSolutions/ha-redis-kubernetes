@@ -1,0 +1,5 @@
+resources:
+  - redis
+  - redis-cli
+  - redis-monitoring
+  - redis-consistency-checker

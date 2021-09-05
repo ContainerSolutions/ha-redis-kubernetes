@@ -1,0 +1,13 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: redis-monitor
+  labels:
+    team: redis-monitor
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  podMetricsEndpoints:
+  - port: metrics
+    interval: 5s

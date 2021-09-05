@@ -1,0 +1,3 @@
+resources:
+  - config-map.yml
+  - deployment.yml
