@@ -26,12 +26,18 @@ When scaling up the scripts will
 * Run CLUSTER MEET to join the node to the cluster
 * Run --cluster rebalance to rebalance all the slots across the nodes
 
+Here is what the key distribution among nodes looks like when scaling up
+![Slots being redistributed across new nodes](https://user-images.githubusercontent.com/20104367/132187964-1cc5be16-58e3-4422-90da-286109d800ab.png)
+
 When scaling down by X the scripts will
 * Find the IDs of the Redis nodes with the top most ordinals of the statefulset
 * Run --cluster rebalance with cluster weight set to 0 for all the IDs above
 * Run --cluster del-node for all the IDs
 * scale down the statefulset by X
 * Delete any dangling PVC to make space for future scaling up
+
+Here is what the key distribution among nodes looks like when scaling down
+![Slots being redistributed away from nodes scaling down](https://user-images.githubusercontent.com/20104367/132188785-d2d9fbe2-6a26-4991-a152-e3149b295b9a.png)
 
 When Upgrading the Redis cluster the scripts will
 * Set the partition for staged upgrade higher than the replica count
@@ -47,6 +53,11 @@ When Upgrading the Redis cluster the scripts will
 	* Lower the partition value for teh Statefulset by 1, and let Kubernetes propogate the changes to the pod
 	* Move onto the next pod
 * Finally run a last rebalance to make sure the cluster is in a good state
+
+Here is what the key distribution looks like when upgrading the image for each node
+![image](https://user-images.githubusercontent.com/20104367/132193715-ca22abb1-f065-421e-9ef4-597fc51a2119.png)
+
+You'll notice that whenever we remove keys from a node, they get rebalanced onto the new node, hance the X shapes. 
 
 ## Deploying the Prometheus Operator
 
@@ -65,6 +76,8 @@ kustomize build . | kubectl apply -f -
 ```
 
 ## Creating the Redis cluster
+
+Once the statefulset pods are all in a running state, you can create the Redis cluster itself.
 
 ```
 ./bin/create-cluster.py
@@ -92,7 +105,7 @@ This script will run a update procedure to move the Redis cluster towards a stab
 
 Cluster monitoring is included in the base stack.
 
-To view the metric, you need to port-forward the prometheus admin interface, and then open it in your browser
+To view the metrics, you need to port-forward the prometheus admin interface, and then open it in your browser
 
 ```
 kubectl port-forward svc/prometheus-operated 9090:9090
@@ -102,6 +115,12 @@ You can now open up [This dashboard][1] to see a graph of how the consistency ch
 
 ## Running the consistency checker
 
+Once the Redis cluster is up, you can immediately run this.
+
+The consistency checker will start inserting keys into Redis, and then read them back to make sure Redis in consistent in SET and GET.
+
+Keep this running while sacling up / down or updating the Redis image, to see whether keys are lost during changes to the Redis cluster.
+
 ```
 kubectl exec -it deploy/redis-consistency-checker -- ruby consistency-checker.rb redis-0.redis 6379
 ```
@@ -109,6 +128,8 @@ kubectl exec -it deploy/redis-consistency-checker -- ruby consistency-checker.rb
 ## Benchmarking the Redis Cluster
 
 You can run the redis-benchmark tool in the current setup as well.
+
+You can run this during updates to check how much performance dips when you start making changes.
 
 ```
 kubectl exec -it redis-cli-0 -- redis-benchmark -h redis-0.redis -p 6379 -t get,set -c 100 -d 2048
